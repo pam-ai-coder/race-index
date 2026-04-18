@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Pam's Trail Races</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a18;min-height:100vh}
+.hero{background:#0F6E56;padding:36px 16px 24px}
+.hero-inner{max-width:480px;margin:0 auto}
+.hero-label{font-size:10px;font-weight:700;color:#9FE1CB;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.hero h1{font-size:26px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px}
+.hero-sub{font-size:12px;color:#9FE1CB;margin-bottom:20px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.hstat{background:rgba(255,255,255,.12);border-radius:10px;padding:9px 4px;text-align:center}
+.hstat-val{font-size:17px;font-weight:700;color:#fff;line-height:1}
+.hstat-lbl{font-size:9px;color:#9FE1CB;margin-top:3px;letter-spacing:.3px}
+
+.tab-bar{background:#0F6E56;display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:11px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:color .15s}
+.tab.active{color:#fff;border-bottom-color:#9FE1CB}
+.tab-content{display:none;padding-bottom:40px}
+.tab-content.active{display:block}
+
+.main{max-width:480px;margin:0 auto}
+.year-header{font-size:10px;font-weight:700;color:#999;letter-spacing:1px;text-transform:uppercase;padding:18px 14px 6px}
+
+.race-card{display:block;background:#fff;margin:0 10px 8px;border-radius:14px;border:1px solid #e8e5e0;overflow:hidden;text-decoration:none;color:inherit}
+.race-card.upcoming{border-left:3px solid #1D9E75}
+.race-card.done{border-left:3px solid #ccc}
+.race-card.planned{border-left:3px solid #F59E0B}
+.card-body{padding:11px 13px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.card-name{font-size:13px;font-weight:700;color:#1a1a18;line-height:1.4;flex:1;padding-right:8px}
+.card-badge{flex-shrink:0;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.3px;margin-top:1px}
+.bu{background:#E1F5EE;color:#085041}
+.bd{background:#f0ede8;color:#888}
+.bp{background:#FEF3C7;color:#92400E}
+.bh{background:#EBF4FF;color:#0C447C}
+.bm{background:#F3E8FF;color:#6B21A8}
+
+.card-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.meta-item{font-size:11px;color:#999}
+.meta-item strong{color:#555;font-weight:600}
+
+.card-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding-top:8px;border-top:1px solid #f5f3f0}
+.cs{text-align:center}
+.cs-val{font-size:12px;font-weight:700;color:#1a1a18;line-height:1.2}
+.cs-lbl{font-size:9px;color:#bbb;margin-top:2px;letter-spacing:.1px}
+.cs-val.green{color:#0F6E56}
+.cs-val.blue{color:#185FA5}
+
+.filter-bar{display:flex;gap:6px;padding:12px 10px 4px;overflow-x:auto;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-btn{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:11px;font-weight:600;color:#555;cursor:pointer;white-space:nowrap}
+.filter-btn.active{background:#0F6E56;color:#fff;border-color:#0F6E56}
+
+.pb-wrap{margin:0 10px 8px;background:#fff;border-radius:14px;border:1px solid #e8e5e0;overflow:hidden}
+.pb-header{padding:11px 13px 8px;border-bottom:1px solid #f5f3f0}
+.pb-title{font-size:13px;font-weight:700;margin-bottom:2px}
+.pb-sub{font-size:11px;color:#888}
+.pb-row{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f9f8f6}
+.pb-row:last-child{border-bottom:none}
+.pb-rank{font-size:11px;font-weight:700;color:#0F6E56;min-width:20px}
+.pb-name{font-size:12px;color:#333;flex:1}
+.pb-val{font-size:13px;font-weight:700;color:#185FA5}
+.pb-date{font-size:10px;color:#bbb;margin-left:6px}
+
+.footer{padding:24px 16px 48px;text-align:center;font-size:11px;color:#bbb;line-height:2}
+.footer a{color:#1D9E75;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<div class="hero-inner">
+  <div class="hero-label">Trail Race Log</div>
+  <h1>Pam's Races</h1>
+  <div class="hero-sub">越野跑 · 登山 · 健行 · 完賽記錄</div>
+  <div class="stats-row">
+    <div class="hstat"><div class="hstat-val" id="h-races">22</div><div class="hstat-lbl">場次</div></div>
+    <div class="hstat"><div class="hstat-val" id="h-km">512</div><div class="hstat-lbl">總公里</div></div>
+    <div class="hstat"><div class="hstat-val" id="h-up">28.5k</div><div class="hstat-lbl">總爬升 m</div></div>
+    <div class="hstat"><div class="hstat-val" id="h-ep">821</div><div class="hstat-lbl">總 EP</div></div>
+  </div>
+</div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('all')">所有賽事</div>
+  <div class="tab" onclick="switchTab('pb')">個人最佳</div>
+</div>
+
+<!-- ══ TAB: 所有賽事 ══ -->
+<div id="tab-all" class="tab-content active">
+<div class="main">
+
+<div class="filter-bar">
+  <div class="filter-btn active" onclick="filterType('all',this)">全部</div>
+  <div class="filter-btn" onclick="filterType('越野賽',this)">越野賽</div>
+  <div class="filter-btn" onclick="filterType('登高',this)">登高</div>
+  <div class="filter-btn" onclick="filterType('健走',this)">健走</div>
+  <div class="filter-btn" onclick="filterType('單攻',this)">單攻</div>
+</div>
+
+<!-- 2026 -->
+<div class="year-header">2026</div>
+
+<a href="https://pam-ai-coder.github.io/race-2026-chali-33k/" class="race-card upcoming" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">找茶越野 苦茶組 33K</div>
+      <div class="card-badge bu">即將到來</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2026.04.19</strong></div>
+      <div class="meta-item">📍 <strong>坪林</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">36.1</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1474</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">50.9</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">10.0</div><div class="cs-lbl">目標EPH</div></div>
+      <div class="cs"><div class="cs-val">—</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">Xtrail Kenting by UTMB 50K</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2026.03.07</strong></div>
+      <div class="meta-item">📍 <strong>墾丁</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">50.4</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">2123</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">71.6</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.78</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">7:19</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">HK100 The Third</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2026.01.22</strong></div>
+      <div class="meta-item">📍 <strong>香港</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">30.8</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1395</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">44.8</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">10.70</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">4:11</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<!-- 2025 -->
+<div class="year-header">2025</div>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">士林越野 24K</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.11.22</strong></div>
+      <div class="meta-item">📍 <strong>士林</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">24.7</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1250</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">33.5</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.33</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">3:35</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">奇岩連峰挑戰組 30K</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.09.06</strong></div>
+      <div class="meta-item">📍 <strong>士林</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">30.8</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1690</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">47.7</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.50</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">5:01</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="登高">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">聖母山莊登高賽</div>
+      <div class="card-badge bh">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.07.19</strong></div>
+      <div class="meta-item">📍 <strong>台灣</strong></div>
+      <div class="meta-item">登高</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">5.5</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">810</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">13.6</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">13.95</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">0:59</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="登高">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">七星山三進三出</div>
+      <div class="card-badge bh">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.07.27</strong></div>
+      <div class="meta-item">📍 <strong>陽明山</strong></div>
+      <div class="meta-item">登高</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">11.2</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1339</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">24.6</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.08</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">2:42</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="登高">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">點亮七星山</div>
+      <div class="card-badge bh">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.07.12</strong></div>
+      <div class="meta-item">📍 <strong>陽明山</strong></div>
+      <div class="meta-item">登高</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">11.9</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1376</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">25.6</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.41</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">2:43</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">KAGA Spa 50</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.06.21</strong></div>
+      <div class="meta-item">📍 <strong>加賀</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">58.2</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">2702</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">85.2</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">8.73</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">9:46</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="單攻">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">陽明山東西大縱走10連峰</div>
+      <div class="card-badge bm">單攻</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.03.25</strong></div>
+      <div class="meta-item">📍 <strong>陽明山</strong></div>
+      <div class="meta-item">單攻</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">25.3</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1781</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">43.1</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">7.57</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">5:41</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">鳴鳳越野 LV3 進階組 20K</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.03.30</strong></div>
+      <div class="meta-item">📍 <strong>台灣</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">22.3</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1630</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">38.6</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.34</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">4:08</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="健走">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">淡蘭中路（威惠廟-外澳）</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.04.12</strong></div>
+      <div class="meta-item">📍 <strong>淡蘭</strong></div>
+      <div class="meta-item">健走</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">27.4</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1200</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">39.4</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">5.88</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">6:42</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">十分越野 33K 冒險者組</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2025.04.27</strong></div>
+      <div class="meta-item">📍 <strong>十分</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">33.9</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1935</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">53.3</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">7.64</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">6:58</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<!-- 2024 -->
+<div class="year-header">2024</div>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">ChiangMai SUTHEP 20</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.12.08</strong></div>
+      <div class="meta-item">📍 <strong>清邁</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">22.5</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1122</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">33.7</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.31</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">3:37</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">Lantau 2 Peaks</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.10.06</strong></div>
+      <div class="meta-item">📍 <strong>香港</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">23.9</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1755</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">41.5</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">8.51</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">4:52</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">TNF 27</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.09.21</strong></div>
+      <div class="meta-item">📍 <strong>香港</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">27.4</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1297</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">40.4</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.45</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">4:17</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="定向越野">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">坪林定向越野</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.08.25</strong></div>
+      <div class="meta-item">📍 <strong>坪林</strong></div>
+      <div class="meta-item">定向越野</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">7.8</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">86</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">8.7</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">8.66</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">1:00</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">士林越野挖礦組</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.07.21</strong></div>
+      <div class="meta-item">📍 <strong>士林</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">8.2</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">355</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">11.8</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">10.37</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">1:08</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="登高">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">七星山三進三出</div>
+      <div class="card-badge bh">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.07.01</strong></div>
+      <div class="meta-item">📍 <strong>陽明山</strong></div>
+      <div class="meta-item">登高</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">11.2</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1274</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">23.9</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">7.44</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">3:13</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">八里越野</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.06.16</strong></div>
+      <div class="meta-item">📍 <strong>八里</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">12.2</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">722</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">19.4</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">8.11</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">2:24</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="單攻">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">漢拏山 한라산</div>
+      <div class="card-badge bm">單攻</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.05.19</strong></div>
+      <div class="meta-item">📍 <strong>濟州</strong></div>
+      <div class="meta-item">單攻</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">18.3</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1388</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">32.2</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">7.43</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">4:20</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="健走">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">陽明山東西大縱走10連峰</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.05.11</strong></div>
+      <div class="meta-item">📍 <strong>陽明山</strong></div>
+      <div class="meta-item">健走</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">23.6</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">1740</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">41.0</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">5.80</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">7:04</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+<a href="#" class="race-card done" data-type="越野賽">
+  <div class="card-body">
+    <div class="card-top">
+      <div class="card-name">山羚羊越野 福源山</div>
+      <div class="card-badge bd">完賽</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item">📅 <strong>2024.01.06</strong></div>
+      <div class="meta-item">📍 <strong>台灣</strong></div>
+      <div class="meta-item">越野賽</div>
+    </div>
+    <div class="card-stats">
+      <div class="cs"><div class="cs-val">15.0</div><div class="cs-lbl">km</div></div>
+      <div class="cs"><div class="cs-val">731</div><div class="cs-lbl">爬升 m</div></div>
+      <div class="cs"><div class="cs-val">22.3</div><div class="cs-lbl">EP</div></div>
+      <div class="cs"><div class="cs-val green">9.63</div><div class="cs-lbl">EPH</div></div>
+      <div class="cs"><div class="cs-val blue">2:19</div><div class="cs-lbl">完賽</div></div>
+    </div>
+  </div>
+</a>
+
+</div>
+</div>
+
+<!-- ══ TAB: 個人最佳 ══ -->
+<div id="tab-pb" class="tab-content">
+<div class="main" style="padding-top:8px">
+
+  <div class="pb-wrap">
+    <div class="pb-header">
+      <div class="pb-title">最高 EPH（配速最快）</div>
+      <div class="pb-sub">越野賽 · 完賽紀錄</div>
+    </div>
+    <div class="pb-row"><div class="pb-rank">#1</div><div class="pb-name">士林越野挖礦組</div><div class="pb-val">10.37</div><div class="pb-date">2024.07</div></div>
+    <div class="pb-row"><div class="pb-rank">#2</div><div class="pb-name">HK100 The Third</div><div class="pb-val">10.70</div><div class="pb-date">2026.01</div></div>
+    <div class="pb-row"><div class="pb-rank">#3</div><div class="pb-name">Xtrail Kenting 50K</div><div class="pb-val">9.78</div><div class="pb-date">2026.03</div></div>
+    <div class="pb-row"><div class="pb-rank">#4</div><div class="pb-name">奇岩連峰挑戰組</div><div class="pb-val">9.50</div><div class="pb-date">2025.09</div></div>
+    <div class="pb-row"><div class="pb-rank">#5</div><div class="pb-name">TNF 27</div><div class="pb-val">9.45</div><div class="pb-date">2024.09</div></div>
+  </div>
+
+  <div class="pb-wrap">
+    <div class="pb-header">
+      <div class="pb-title">最長距離</div>
+      <div class="pb-sub">所有類型</div>
+    </div>
+    <div class="pb-row"><div class="pb-rank">#1</div><div class="pb-name">KAGA Spa 50</div><div class="pb-val">58.2 km</div><div class="pb-date">2025.06</div></div>
+    <div class="pb-row"><div class="pb-rank">#2</div><div class="pb-name">Xtrail Kenting 50K</div><div class="pb-val">50.4 km</div><div class="pb-date">2026.03</div></div>
+    <div class="pb-row"><div class="pb-rank">#3</div><div class="pb-name">十分越野 33K</div><div class="pb-val">33.9 km</div><div class="pb-date">2025.04</div></div>
+    <div class="pb-row"><div class="pb-rank">#4</div><div class="pb-name">奇岩連峰挑戰組</div><div class="pb-val">30.8 km</div><div class="pb-date">2025.09</div></div>
+    <div class="pb-row"><div class="pb-rank">#5</div><div class="pb-name">HK100 The Third</div><div class="pb-val">30.8 km</div><div class="pb-date">2026.01</div></div>
+  </div>
+
+  <div class="pb-wrap">
+    <div class="pb-header">
+      <div class="pb-title">最高爬升</div>
+      <div class="pb-sub">所有類型</div>
+    </div>
+    <div class="pb-row"><div class="pb-rank">#1</div><div class="pb-name">KAGA Spa 50</div><div class="pb-val">2702 m</div><div class="pb-date">2025.06</div></div>
+    <div class="pb-row"><div class="pb-rank">#2</div><div class="pb-name">Xtrail Kenting 50K</div><div class="pb-val">2123 m</div><div class="pb-date">2026.03</div></div>
+    <div class="pb-row"><div class="pb-rank">#3</div><div class="pb-name">十分越野 33K</div><div class="pb-val">1935 m</div><div class="pb-date">2025.04</div></div>
+    <div class="pb-row"><div class="pb-rank">#4</div><div class="pb-name">奇岩連峰挑戰組</div><div class="pb-val">1690 m</div><div class="pb-date">2025.09</div></div>
+    <div class="pb-row"><div class="pb-rank">#5</div><div class="pb-name">陽明山東西大縱走</div><div class="pb-val">1781 m</div><div class="pb-date">2025.03</div></div>
+  </div>
+
+  <div class="pb-wrap">
+    <div class="pb-header">
+      <div class="pb-title">最高 EP（最硬賽道）</div>
+      <div class="pb-sub">所有類型</div>
+    </div>
+    <div class="pb-row"><div class="pb-rank">#1</div><div class="pb-name">KAGA Spa 50</div><div class="pb-val">85.2 EP</div><div class="pb-date">2025.06</div></div>
+    <div class="pb-row"><div class="pb-rank">#2</div><div class="pb-name">Xtrail Kenting 50K</div><div class="pb-val">71.6 EP</div><div class="pb-date">2026.03</div></div>
+    <div class="pb-row"><div class="pb-rank">#3</div><div class="pb-name">十分越野 33K</div><div class="pb-val">53.3 EP</div><div class="pb-date">2025.04</div></div>
+    <div class="pb-row"><div class="pb-rank">#4</div><div class="pb-name">HK100 The Third</div><div class="pb-val">44.8 EP</div><div class="pb-date">2026.01</div></div>
+    <div class="pb-row"><div class="pb-rank">#5</div><div class="pb-name">陽明山東西大縱走(單攻)</div><div class="pb-val">43.1 EP</div><div class="pb-date">2025.03</div></div>
+  </div>
+
+</div>
+</div>
+
+<div class="footer">
+  由 GPX 腳本自動產生 · <a href="https://github.com/pam-ai-coder">github.com/pam-ai-coder</a>
+</div>
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['all','pb'][i]===t));
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+}
+function filterType(type,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.race-card').forEach(c=>{
+    const ct=c.dataset.type||'';
+    c.style.display=(type==='all'||ct===type||ct.includes(type))?'block':'none';
+  });
+}
+</script>
+</body></html>
